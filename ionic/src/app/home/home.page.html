@@ -1,0 +1,46 @@
+<ion-content>
+
+
+  <!-- loading -->
+  <div *ngIf="!doneLoading">
+    <div id="container" class="style-container">
+      <ion-spinner name="crescent"></ion-spinner>
+    </div>
+  </div>
+
+
+  <!-- user not signed in -->
+  <div *ngIf="doneLoading && !user">
+
+    <div id="container" class="style-container">
+      <div class="style-item">
+        <ion-input class="style-label" label="Email" label-placement="floating" fill="outline" type="email"
+          [(ngModel)]="email"></ion-input>
+        <ion-input class="style-label" label="Password" label-placement="floating" fill="outline" type="password"
+          [(ngModel)]="password"></ion-input>
+        <ion-button (click)="signIn()" size="large" class="style-button">
+          {{getSigningInButtonText()}}
+          <ion-spinner name="crescent" [ngClass]="signingIn ? 'class-show' : 'class-hidden'"></ion-spinner>
+        </ion-button>
+      </div>
+    </div>
+
+  </div>
+
+
+  <!-- user signed in -->
+  <div *ngIf="doneLoading && user">
+
+    <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)">
+      <ion-refresher-content></ion-refresher-content>
+    </ion-refresher>
+
+    <div id="container">
+      <ion-button [disabled]="sendingCommand || refreshing" (click)="toggleGarage()" size="large" class="style-button">
+        {{getGarageButtonText()}}
+        <ion-spinner name="crescent" [ngClass]="sendingCommand ? 'class-show' : 'class-hidden'"></ion-spinner>
+      </ion-button>
+    </div>
+  </div>
+
+</ion-content>

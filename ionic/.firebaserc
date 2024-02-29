@@ -1,0 +1,14 @@
+{
+  "targets": {
+    "garage-monitor-edge": {
+      "hosting": {
+        "app": [
+          "garage-monitor-edge"
+        ]
+      }
+    }
+  },
+  "projects": {
+    "default": "garage-monitor-edge"
+  }
+}
