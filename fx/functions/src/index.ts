@@ -1,19 +1,19 @@
 // ********************************************************************
 // 1- create an api user with permissions to call functions on Particle:
 //    https://docs.particle.io/getting-started/cloud/cloud-api/#api-users
-// 2- set the key by running this command in the terminal, under the functions folder:
-//    $ firebase functions:config:set api.key.callfx='1235083045abcdef'
-// 3- set the Particle product of your Monitor One device:
-//    $ firebase functions:config:set particle.productid='123456'
-// 4- set the device id of your Monitor One device:
-//    $ firebase functions:config:set particle.deviceid='1234567890abcdef'
-// 5- deploy like this:
+// 2- create an .env file in the functions folder with the following:
+//    API_KEY_CALLFX=1235083045abcdef
+//    PARTICLE_PRODUCTID=123456
+//    PARTICLE_DEVICEID=1234567890abcdef
+// 3- deploy like this:
 //    $ firebase deploy --only functions
 //
 // NOTE: always install npm libraries from the functions folder.
 //
 // ********************************************************************
-import * as functions from "firebase-functions";
+const { onCall, HttpsError } = require("firebase-functions/v2/https");
+const { logger } = require("firebase-functions/v2");
+
 import * as bent from "bent";
 import * as formurlencoded from "form-urlencoded";
 import admin = require("firebase-admin");
@@ -22,21 +22,23 @@ admin.initializeApp();
 // ********************************************************************
 // call a function on Particle
 // ********************************************************************
-export const callParticleFunction = functions.https.onCall(async (data, context): Promise<string> => {
+exports.callParticleFunction = onCall(async (request: any) => {
 
-    console.log("Data is", data);
+    logger.info("Request is", request);
+    logger.info("Request data is", request.data);
+    logger.info("Request auth is", request.auth);
 
-    if (!verifyCallerInfo(context))
-        return Promise.reject("User not signed in");
+    if (!verifyCallerInfo(request.auth))
+        throw new HttpsError("not signed in", "User not signed in.");
 
     let functionName: string = "";
     let arg: string = "";
     try {
-        functionName = data.functionName;
-        arg = data.arg;
+        functionName = request.data.functionName;
+        arg = request.data.arg;
     } catch (err) {
-        console.log(err);
-        return Promise.reject("Missing function name or args");
+        logger.info(err);
+        throw new HttpsError("invalid data", "Missing function name or args.");
     }
 
     const form = {
@@ -44,11 +46,17 @@ export const callParticleFunction = functions.https.onCall(async (data, context)
     };
 
     try {
-        // we store the key with:
-        // firebase functions:config:set api.key.callfx='1235083045abcdef'
-        const key = functions.config().api.key.callfx;
-        const productid = functions.config().particle.productid;
-        const deviceid = functions.config().particle.deviceid;
+        // env variables have to be stored as described at the top of this file
+        const key = process.env.API_KEY_CALLFX;
+        const productid = process.env.PARTICLE_PRODUCTID;
+        const deviceid = process.env.PARTICLE_DEVICEID;
+
+        // validate secrets
+        if ((!key) || (!productid) || (!deviceid)) {
+            logger.error("missing environment variables.");
+            throw new HttpsError("internal", "Missing environment variables.");
+        }
+
         const PARTICLE_FUNCTIONS: string = "/v1/products/" + productid + "/devices/";
         const url = PARTICLE_FUNCTIONS + deviceid + "/" + functionName;
 
@@ -60,35 +68,35 @@ export const callParticleFunction = functions.https.onCall(async (data, context)
         };
         let response = await post(url, formurlencoded(form), headers);
 
-        console.log("POST function call response", response);
+        logger.info("POST function call response", response);
 
-        return Promise.resolve(JSON.stringify(response));
+        return JSON.stringify(response);
     }
     catch (err) {
-        console.error("the function call failed");
-        console.error(err);
-        return Promise.reject("error")
+        logger.error("the function call failed");
+        logger.error(err);
+        throw new HttpsError("internal", "The function call failed.");
     }
 
 });
 
 
-export function verifyCallerInfo(context: any): boolean {
-    if (!context.auth) {
+export function verifyCallerInfo(auth: any): boolean {
+    if (!auth) {
         return false;
     }
     try {
-        const callerEmail = context.auth?.token?.email ?? null;
-        const callerUid = context.auth?.token?.uid || null;
+        const callerEmail = auth?.token?.email ?? null;
+        const callerUid = auth?.token?.uid || null;
         if ((!callerEmail) || (!callerUid)) {
             return false;
         }
     }
     catch (err) {
-        console.error("verifyCallerInfo", err);
+        logger.error("verifyCallerInfo", err);
         return false;
     }
 
-    console.log("verifyCallerInfo ok");
+    logger.info("verifyCallerInfo ok");
     return true;
 }
