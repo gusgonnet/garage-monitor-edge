@@ -81,9 +81,9 @@ export class HomePage implements OnInit {
       return "";
     }
     if (this.garageStatus == 0)
-      return "Open Garage";
-    else if (this.garageStatus == 1)
       return "Close Garage";
+    else if (this.garageStatus == 1)
+      return "Open Garage";
     else
       return "Toggle Garage";
   }
