@@ -1,6 +1,5 @@
 <ion-content>
 
-
   <!-- loading -->
   <div *ngIf="!doneLoading">
     <div id="container" class="style-container">
@@ -9,8 +8,9 @@
   </div>
 
 
+
   <!-- user not signed in -->
-  <div *ngIf="doneLoading && !user">
+  <div *ngIf="doneLoading && !loggedIn">
 
     <div id="container" class="style-container">
       <div class="style-item">
@@ -18,7 +18,9 @@
         <ion-input class="style-label" placeholder="Password" fill="outline" type="password"
           [(ngModel)]="password"></ion-input>
         <ion-button (click)="signIn()" size="large" class="style-button">
-          {{getSigningInButtonText()}}
+          <div *ngIf="!signingIn">
+            Sign In
+          </div>
           <ion-spinner name="crescent" [ngClass]="signingIn ? 'class-show' : 'class-hidden'"></ion-spinner>
         </ion-button>
       </div>
@@ -27,19 +29,23 @@
   </div>
 
 
+  
   <!-- user signed in -->
-  <div *ngIf="doneLoading && user">
+  <div *ngIf="doneLoading && loggedIn">
 
     <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)">
       <ion-refresher-content></ion-refresher-content>
     </ion-refresher>
 
-    <div id="container" class="style-container">
-      <ion-button [disabled]="sendingCommand || refreshing" (click)="toggleGarage()" size="large" class="style-button">
-        {{getGarageButtonText()}}
-        <ion-spinner name="crescent" [ngClass]="sendingCommand ? 'class-show' : 'class-hidden'"></ion-spinner>
-      </ion-button>
-    </div>
+      <div id="container" class="style-container">
+        <ion-button [disabled]="fsmInfo$.context.doorIsMoving" (click)="cloudService.toggleRelay()" size="large" class="style-button">
+          {{fsmInfo$.context.actionButton}}
+          <ion-spinner name="crescent"
+            [ngClass]="fsmInfo$.context.doorIsMoving ? 'class-show' : 'class-hidden'"></ion-spinner>
+        </ion-button>
+      </div>
+
   </div>
+
 
 </ion-content>
