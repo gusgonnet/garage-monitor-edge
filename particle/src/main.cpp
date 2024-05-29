@@ -10,6 +10,8 @@ PRODUCT_ID(EDGE_PRODUCT_ID);
 #endif // EDGE_PRODUCT_NEEDED
 PRODUCT_VERSION(EDGE_PRODUCT_VERSION);
 
+Ledger garageLedger;
+
 STARTUP(
     Edge::startup(););
 
@@ -27,6 +29,7 @@ bool toggleRelay = false;
 //  0: garage open
 //  1: garage closed
 int status = -1;
+int previousStatus = -1;
 
 // set a flag that loop() will read
 int toggleRelayCloudFx(String parameter)
@@ -40,6 +43,34 @@ int getStatusCloudFx(String parameter)
     return status;
 }
 
+// if the status of the input changes, update the ledger
+void checkStatus()
+{
+    // The general purpose 24V input is inverted as it passes through an optoisolator.
+    // The garage is closed when the dry contact is closed, so we invert the input.
+    status = !digitalRead(MONITOREDGE_IOEX_DIGITAL_IN_PIN);
+
+    if (status != previousStatus)
+    {
+        previousStatus = status;
+
+        // Save the value to the ledger.
+        // The ledger will automatically be synced to the cloud by DeviceOS pretty fast (I observed 200 msec or so)
+        // This sync consumes one Data Operation:
+        // https://www.particle.io/pricing/#How-are-data-automation-activities-charged?
+        Variant data;
+        data.set("status", status);                           // this is for the web app
+        data.set("statusH", status == 0 ? "open" : "closed"); // this is for humans
+        if (Time.isValid())
+        {
+            data.set("time", Time.now());                             // this is for the web app
+            data.set("timeH", Time.format(TIME_FORMAT_ISO8601_FULL)); // this is for humans
+        }
+        garageLedger.set(data);
+        Log.info("set ledger %s", data.toJSON().c_str());
+    }
+}
+
 void setup()
 {
     Edge::instance().init();
@@ -47,12 +78,14 @@ void setup()
     Particle.function("toggleRelay", toggleRelayCloudFx);
     Particle.function("getStatus", getStatusCloudFx);
 
-    // pinMode(A5, INPUT);
+    garageLedger = Particle.ledger("garage-monitor-edge");
 }
 
 void loop()
 {
     Edge::instance().loop();
+
+    checkStatus();
 
     static unsigned long lastTime = millis();
     unsigned long now = millis();
@@ -61,10 +94,6 @@ void loop()
         lastTime = now;
         Log.info("status: %s", status == 0 ? "open" : "closed");
     }
-
-    // The general purpose 24V input is inverted as it passes through an optoisolator.
-    // The garage is closed when the dry contact is closed, so we invert the input.
-    status = !digitalRead(MONITOREDGE_IOEX_DIGITAL_IN_PIN);
 
     if (toggleRelay)
     {
