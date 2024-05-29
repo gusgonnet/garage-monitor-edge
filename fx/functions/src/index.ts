@@ -1,10 +1,17 @@
 // ********************************************************************
+//
+// HOW TO USE
+//
 // 1- create an api user with permissions to call functions on Particle:
 //    https://docs.particle.io/getting-started/cloud/cloud-api/#api-users
-// 2- create an .env file in the functions folder with the following:
-//    API_KEY_CALLFX=1235083045abcdef
-//    PARTICLE_PRODUCTID=123456
-//    PARTICLE_DEVICEID=1234567890abcdef
+//
+// 2- create an .env file under the functions folder with the following:
+//    API_KEY_CALLFX="1235083045abcdef"
+//    PARTICLE_PRODUCTID="123456"
+//    PARTICLE_DEVICEID="1234567890abcdef"
+//
+//    Do not commit the .env file to your repository.
+//
 // 3- deploy like this:
 //    $ firebase deploy --only functions
 //
