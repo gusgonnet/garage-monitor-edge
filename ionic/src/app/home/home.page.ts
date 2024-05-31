@@ -3,6 +3,7 @@ import { ToastController } from '@ionic/angular';
 import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { FsmService } from '../services/fsm.service';
 import { CloudService } from '../services/cloud.service';
+import { HelperService } from '../services/helper.service';
 
 
 @Component({
@@ -26,6 +27,7 @@ export class HomePage implements OnInit {
     public fireAuth: AngularFireAuth,
     public fsmService: FsmService,
     public cloudService: CloudService,
+    public helperService: HelperService,
   ) { }
 
 
@@ -62,7 +64,7 @@ export class HomePage implements OnInit {
     }
     ).catch((error) => {
       console.log("Error signing in: ", error);
-      this.cloudService.toast("Failed to sign in: " + error.message);
+      this.helperService.toast("Failed to sign in: " + error.message);
       this.signingIn = false;
     }).finally(() => {
     });
@@ -78,6 +80,11 @@ export class HomePage implements OnInit {
       this.fsmService.send(status === 0 ? "open" : "close");
     }
     event.target.complete();
+  }
+
+  toggleRelay() {
+    this.fsmService.send('toggle');
+    this.cloudService.toggleRelay();
   }
 
 }

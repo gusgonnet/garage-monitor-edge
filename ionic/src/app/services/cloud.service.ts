@@ -1,8 +1,7 @@
 import { Injectable } from '@angular/core';
 import { AngularFireFunctions } from '@angular/fire/compat/functions';
-import { ToastController } from '@ionic/angular';
 import { firstValueFrom } from 'rxjs';
-import { FsmService } from './fsm.service';
+import { HelperService } from './helper.service';
 
 @Injectable({
   providedIn: 'root'
@@ -11,9 +10,7 @@ export class CloudService {
 
   constructor(
     private angularFireFunctions: AngularFireFunctions,
-    public toastController: ToastController,
-    public fsmService: FsmService,
-
+    public helperService: HelperService,
   ) { }
 
 
@@ -36,12 +33,12 @@ export class CloudService {
         let msg = "Failed to get status.";
         if (!response?.connected)
           msg = msg + " Device not connected.";
-        await this.toast(msg);
+        await this.helperService.toast(msg);
       }
 
     } catch (error) {
       console.log("Error getting status: ", error);
-      await this.toast("Failed to get status.");
+      await this.helperService.toast("Failed to get status.");
     }
     finally {
       return status;
@@ -52,8 +49,6 @@ export class CloudService {
 
   async toggleRelay() {
     try {
-      this.fsmService.send('toggle');
-
       let response = await firstValueFrom(this.callParticleFunctionCloudFx("toggleRelay"));
       response = JSON.parse(response);
 
@@ -63,12 +58,12 @@ export class CloudService {
         let msg = "Failed to send command.";
         if (!response?.connected)
           msg = msg + " Device not connected.";
-        await this.toast(msg);
+        await this.helperService.toast(msg);
       }
     }
     catch (error) {
       console.log("Error toggling relay: ", error);
-      await this.toast("Failed to send command.");
+      await this.helperService.toast("Failed to send command.");
     }
   }
 
@@ -76,17 +71,6 @@ export class CloudService {
   callParticleFunctionCloudFx(functionName: string, arg: string = "") {
     const callable = this.angularFireFunctions.httpsCallable('callParticleFunction');
     return callable({ functionName: functionName, arg: arg })
-  }
-
-  // ---------------------------------------------------------------
-  // helpers
-  // ---------------------------------------------------------------
-  public async toast(message: string) {
-    const toast = await this.toastController.create({
-      message: message,
-      duration: 3000
-    });
-    toast.present();
   }
 
 }
