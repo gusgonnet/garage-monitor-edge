@@ -47,6 +47,11 @@ int getStatusCloudFx(String parameter)
     return status;
 }
 
+String getStatusForHumans()
+{
+    return status == 0 ? "open" : "closed";
+}
+
 // if the status of the input changes, update the ledger
 void checkStatus()
 {
@@ -81,6 +86,7 @@ void setup()
 
     Particle.function("toggleRelay", toggleRelayCloudFx);
     Particle.function("getStatus", getStatusCloudFx);
+    Particle.variable("getStatusForHumans", getStatusForHumans);
 
     garageLedger = Particle.ledger("garage-monitor-edge");
 }
