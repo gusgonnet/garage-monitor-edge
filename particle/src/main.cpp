@@ -82,6 +82,10 @@ void checkStatus()
 
 void setup()
 {
+
+    BLE.on();
+    BLE.selectAntenna(BleAntennaType::EXTERNAL);
+
     Edge::instance().init();
 
     Particle.function("toggleRelay", toggleRelayCloudFx);
