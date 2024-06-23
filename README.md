@@ -1,7 +1,7 @@
 
 # Garage + Particle Monitor Edge
 
-This firmware is based on the [Particle Monitor Edge](https://github.com/particle-iot/monitor-edge) and it tries to open a garage.
+This firmware builds upon the Particle Monitor Edge platform to automate garage door operations.
 
 ### LICENSE
 
