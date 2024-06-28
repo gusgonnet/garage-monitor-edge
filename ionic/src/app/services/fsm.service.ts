@@ -26,14 +26,14 @@ export class FsmService {
         on: { open: 'Opening', toggle: 'Opening' },
         entry: assign({
           doorIsMoving: ({ context }) => context.doorIsMoving = false,
-          actionButton: ({ context }) => context.actionButton = 'Open Door',
+          actionButton: ({ context }) => context.actionButton = 'Open Garage',
         }),
       },
       Open: {
         on: { close: 'Closing', toggle: 'Closing' },
         entry: assign({
           doorIsMoving: ({ context }) => context.doorIsMoving = false,
-          actionButton: ({ context }) => context.actionButton = 'Close Door',
+          actionButton: ({ context }) => context.actionButton = 'Close Garage',
         }),
       },
       Opening: {
