@@ -111,10 +111,10 @@ void loop()
 
     if (toggleRelay)
     {
-        toggleRelay = false;
         digitalWrite(MONITOREDGE_IOEX_RELAY_OUT_PIN, HIGH);
         delay(1000);
         digitalWrite(MONITOREDGE_IOEX_RELAY_OUT_PIN, LOW);
+        toggleRelay = false;
     }
 
     static unsigned long scannedTime = 0;
@@ -137,8 +137,15 @@ void loop()
 
                 if (beacon.getButtonEvent() > 0)
                 {
-                    Log.info("Button pressed");
-                    toggleRelay = true;
+                    // debounce the button
+                    static unsigned long lastTimeButton = millis() - 4000;
+                    unsigned long now2 = millis();
+                    if ((now2 - lastTimeButton) >= 4000)
+                    {
+                        lastTimeButton = now2;
+                        Log.info("Button pressed");
+                        toggleRelay = true;
+                    }
                 }
             }
         }
